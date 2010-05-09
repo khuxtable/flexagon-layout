@@ -40,16 +40,34 @@ public class PNGImage {
     }
 
     /**
+     * Draw blank pixels for left border.
+     *
+     * @param y         DOCUMENT ME!
+     * @param pointDown DOCUMENT ME!
+     */
+    public void rowStart(int y, boolean pointDown) {
+        col = 0;
+
+        if (pointDown) {
+            y = height / 2 - y;
+        }
+
+        int end = (int) Math.floor(y * width / 2.0 / height);
+
+        for (int dx = 0; dx < end; dx++) {
+            drawPixel(0);
+        }
+    }
+
+    /**
      * Draw a row of a facet
      *
-     * @param  y     DOCUMENT ME!
-     * @param  face  DOCUMENT ME!
-     * @param  facet DOCUMENT ME!
-     * @param  rot   DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * @param y     DOCUMENT ME!
+     * @param face  DOCUMENT ME!
+     * @param facet DOCUMENT ME!
+     * @param rot   DOCUMENT ME!
      */
-    public int drawRow(int y, FlexagonFace face, int facet, int rot) {
+    public void drawRow(int y, FlexagonFace face, int facet, int rot) {
         if (y % 10 == 0) {
             System.err.print("On row " + y + "       \r");
         }
@@ -76,52 +94,19 @@ public class PNGImage {
                 drawPixel(pixels[i]);
             }
         }
-
-        return w;
-    }
-
-    /**
-     * Draw blank pixels for left border.
-     *
-     * @param  y         DOCUMENT ME!
-     * @param  pointDown DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     */
-    public int rowStart(int y, boolean pointDown) {
-        col = 0;
-
-        if (pointDown) {
-            y = height / 2 - y;
-        }
-
-        int end = (int) Math.floor(y * width / 2.0 / height);
-
-        for (int dx = 0; dx < end; dx++) {
-            drawPixel(0);
-        }
-
-        return end;
     }
 
     /**
      * Draw blank pixels for right border. This just fills out the row.
-     *
-     * @param  x DOCUMENT ME!
-     * @param  y DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
      */
-    public int rowFinish(int x, int y) {
+    public void rowFinish() {
         int end = (int) (2.75 * width);
 
-        for (int dx = x; dx < end; dx++) {
+        while (col < end) {
             drawPixel(0);
         }
 
         row++;
-
-        return end - x;
     }
 
     /**
@@ -131,8 +116,7 @@ public class PNGImage {
      */
     private void drawPixel(int pixel) {
         g.setColor(new Color(pixel));
-        g.fillRect(col, row, 2, 2);
-        col++;
+        g.fillRect(col++, row, 2, 2);
     }
 
     /**

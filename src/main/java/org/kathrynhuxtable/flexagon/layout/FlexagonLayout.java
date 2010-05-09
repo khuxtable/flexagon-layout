@@ -190,46 +190,44 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawFrontHexa() {
-        int x;
-
         PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[0], b, 120);
-            x += out.drawRow(y, faces[1], c, 120);
-            x += out.drawRow(y, faces[2], f, 240);
-            x += out.drawRow(y, faces[0], c, 120);
-            x += out.drawRow(y, faces[1], f, 240);
-            x += out.drawRow(y, faces[2], e, 240);
-            x += out.drawRow(y, faces[0], f, 240);
-            x += out.drawRow(y, faces[1], e, 240);
-            x += out.drawRow(y, faces[2], d, 0);
-            x += out.drawRow(y, faces[0], e, 240);
+            out.drawRow(y, faces[0], b, 120);
+            out.drawRow(y, faces[1], c, 120);
+            out.drawRow(y, faces[2], f, 240);
+            out.drawRow(y, faces[0], c, 120);
+            out.drawRow(y, faces[1], f, 240);
+            out.drawRow(y, faces[2], e, 240);
+            out.drawRow(y, faces[0], f, 240);
+            out.drawRow(y, faces[1], e, 240);
+            out.drawRow(y, faces[2], d, 0);
+            out.drawRow(y, faces[0], e, 240);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[0], e, 240);
-            x += out.drawRow(y, faces[1], d, 0);
-            x += out.drawRow(y, faces[2], a, 0);
-            x += out.drawRow(y, faces[0], d, 0);
-            x += out.drawRow(y, faces[1], a, 0);
-            x += out.drawRow(y, faces[2], b, 120);
-            x += out.drawRow(y, faces[0], a, 0);
-            x += out.drawRow(y, faces[1], b, 120);
-            x += out.drawRow(y, faces[2], c, 120);
-            x += out.drawRow(y, faces[0], b, 120);
+            out.drawRow(y, faces[0], e, 240);
+            out.drawRow(y, faces[1], d, 0);
+            out.drawRow(y, faces[2], a, 0);
+            out.drawRow(y, faces[0], d, 0);
+            out.drawRow(y, faces[1], a, 0);
+            out.drawRow(y, faces[2], b, 120);
+            out.drawRow(y, faces[0], a, 0);
+            out.drawRow(y, faces[1], b, 120);
+            out.drawRow(y, faces[2], c, 120);
+            out.drawRow(y, faces[0], b, 120);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_front");
@@ -239,8 +237,6 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawBackHexa() {
-        int x;
-
         PNGImage out = new PNGImage(width, height);
 
         int delta = numFaces / 2;
@@ -248,39 +244,39 @@ public class FlexagonLayout extends JFrame {
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[3 - delta], a, 300);
-            x += out.drawRow(y, faces[5 - delta], b, 60);
-            x += out.drawRow(y, faces[5 - delta], c, 60);
-            x += out.drawRow(y, faces[4 - delta], b, 60);
-            x += out.drawRow(y, faces[4 - delta], c, 60);
-            x += out.drawRow(y, faces[3 - delta], b, 60);
-            x += out.drawRow(y, faces[3 - delta], c, 60);
-            x += out.drawRow(y, faces[5 - delta], f, 180);
-            x += out.drawRow(y, faces[5 - delta], e, 180);
-            x += out.drawRow(y, faces[4 - delta], f, 180);
+            out.drawRow(y, faces[3 - delta], a, 300);
+            out.drawRow(y, faces[5 - delta], b, 60);
+            out.drawRow(y, faces[5 - delta], c, 60);
+            out.drawRow(y, faces[4 - delta], b, 60);
+            out.drawRow(y, faces[4 - delta], c, 60);
+            out.drawRow(y, faces[3 - delta], b, 60);
+            out.drawRow(y, faces[3 - delta], c, 60);
+            out.drawRow(y, faces[5 - delta], f, 180);
+            out.drawRow(y, faces[5 - delta], e, 180);
+            out.drawRow(y, faces[4 - delta], f, 180);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[4 - delta], f, 180);
-            x += out.drawRow(y, faces[4 - delta], e, 180);
-            x += out.drawRow(y, faces[3 - delta], f, 180);
-            x += out.drawRow(y, faces[3 - delta], e, 180);
-            x += out.drawRow(y, faces[5 - delta], d, 300);
-            x += out.drawRow(y, faces[5 - delta], a, 300);
-            x += out.drawRow(y, faces[4 - delta], d, 300);
-            x += out.drawRow(y, faces[4 - delta], a, 300);
-            x += out.drawRow(y, faces[3 - delta], d, 300);
-            x += out.drawRow(y, faces[3 - delta], a, 300);
+            out.drawRow(y, faces[4 - delta], f, 180);
+            out.drawRow(y, faces[4 - delta], e, 180);
+            out.drawRow(y, faces[3 - delta], f, 180);
+            out.drawRow(y, faces[3 - delta], e, 180);
+            out.drawRow(y, faces[5 - delta], d, 300);
+            out.drawRow(y, faces[5 - delta], a, 300);
+            out.drawRow(y, faces[4 - delta], d, 300);
+            out.drawRow(y, faces[4 - delta], a, 300);
+            out.drawRow(y, faces[3 - delta], d, 300);
+            out.drawRow(y, faces[3 - delta], a, 300);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_back");
@@ -290,46 +286,44 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawFrontLeftDodeca() {
-        int x;
-
         PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[4], f, 240);
-            x += out.drawRow(y, faces[0], b, 180);
-            x += out.drawRow(y, faces[1], c, 180);
-            x += out.drawRow(y, faces[4], e, 240);
-            x += out.drawRow(y, faces[3], f, 240);
-            x += out.drawRow(y, faces[2], f, 300);
-            x += out.drawRow(y, faces[0], c, 180);
-            x += out.drawRow(y, faces[3], e, 240);
-            x += out.drawRow(y, faces[5], d, 0);
-            x += out.drawRow(y, faces[1], f, 300);
+            out.drawRow(y, faces[4], f, 240);
+            out.drawRow(y, faces[0], b, 180);
+            out.drawRow(y, faces[1], c, 180);
+            out.drawRow(y, faces[4], e, 240);
+            out.drawRow(y, faces[3], f, 240);
+            out.drawRow(y, faces[2], f, 300);
+            out.drawRow(y, faces[0], c, 180);
+            out.drawRow(y, faces[3], e, 240);
+            out.drawRow(y, faces[5], d, 0);
+            out.drawRow(y, faces[1], f, 300);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[1], f, 300);
-            x += out.drawRow(y, faces[2], e, 300);
-            x += out.drawRow(y, faces[5], a, 0);
-            x += out.drawRow(y, faces[4], d, 0);
-            x += out.drawRow(y, faces[0], f, 300);
-            x += out.drawRow(y, faces[1], e, 300);
-            x += out.drawRow(y, faces[4], a, 0);
-            x += out.drawRow(y, faces[3], d, 0);
-            x += out.drawRow(y, faces[2], d, 60);
-            x += out.drawRow(y, faces[0], e, 300);
+            out.drawRow(y, faces[1], f, 300);
+            out.drawRow(y, faces[2], e, 300);
+            out.drawRow(y, faces[5], a, 0);
+            out.drawRow(y, faces[4], d, 0);
+            out.drawRow(y, faces[0], f, 300);
+            out.drawRow(y, faces[1], e, 300);
+            out.drawRow(y, faces[4], a, 0);
+            out.drawRow(y, faces[3], d, 0);
+            out.drawRow(y, faces[2], d, 60);
+            out.drawRow(y, faces[0], e, 300);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_front_left");
@@ -339,46 +333,44 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawFrontRightDodeca() {
-        int x;
-
         PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[0], e, 300);
-            x += out.drawRow(y, faces[3], a, 0);
-            x += out.drawRow(y, faces[5], b, 120);
-            x += out.drawRow(y, faces[1], d, 60);
-            x += out.drawRow(y, faces[2], a, 60);
-            x += out.drawRow(y, faces[5], c, 120);
-            x += out.drawRow(y, faces[4], b, 120);
-            x += out.drawRow(y, faces[0], d, 60);
-            x += out.drawRow(y, faces[1], a, 60);
-            x += out.drawRow(y, faces[4], c, 120);
+            out.drawRow(y, faces[0], e, 300);
+            out.drawRow(y, faces[3], a, 0);
+            out.drawRow(y, faces[5], b, 120);
+            out.drawRow(y, faces[1], d, 60);
+            out.drawRow(y, faces[2], a, 60);
+            out.drawRow(y, faces[5], c, 120);
+            out.drawRow(y, faces[4], b, 120);
+            out.drawRow(y, faces[0], d, 60);
+            out.drawRow(y, faces[1], a, 60);
+            out.drawRow(y, faces[4], c, 120);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[4], c, 120);
-            x += out.drawRow(y, faces[3], b, 120);
-            x += out.drawRow(y, faces[2], b, 180);
-            x += out.drawRow(y, faces[0], a, 60);
-            x += out.drawRow(y, faces[3], c, 120);
-            x += out.drawRow(y, faces[5], f, 240);
-            x += out.drawRow(y, faces[1], b, 180);
-            x += out.drawRow(y, faces[2], c, 180);
-            x += out.drawRow(y, faces[5], e, 240);
-            x += out.drawRow(y, faces[4], f, 240);
+            out.drawRow(y, faces[4], c, 120);
+            out.drawRow(y, faces[3], b, 120);
+            out.drawRow(y, faces[2], b, 180);
+            out.drawRow(y, faces[0], a, 60);
+            out.drawRow(y, faces[3], c, 120);
+            out.drawRow(y, faces[5], f, 240);
+            out.drawRow(y, faces[1], b, 180);
+            out.drawRow(y, faces[2], c, 180);
+            out.drawRow(y, faces[5], e, 240);
+            out.drawRow(y, faces[4], f, 240);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_front_right");
@@ -388,8 +380,6 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawBackRightDodeca() {
-        int x;
-
         int delta = numFaces / 2;
 
         PNGImage out = new PNGImage(width, height);
@@ -397,39 +387,39 @@ public class FlexagonLayout extends JFrame {
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[8 - delta], e, 180);
-            x += out.drawRow(y, faces[7 - delta], f, 180);
-            x += out.drawRow(y, faces[7 - delta], e, 180);
-            x += out.drawRow(y, faces[6 - delta], f, 180);
-            x += out.drawRow(y, faces[6 - delta], e, 180);
-            x += out.drawRow(y, faces[11 - delta], d, 300);
-            x += out.drawRow(y, faces[11 - delta], a, 300);
-            x += out.drawRow(y, faces[10 - delta], d, 300);
-            x += out.drawRow(y, faces[10 - delta], a, 300);
-            x += out.drawRow(y, faces[9 - delta], d, 300);
+            out.drawRow(y, faces[8 - delta], e, 180);
+            out.drawRow(y, faces[7 - delta], f, 180);
+            out.drawRow(y, faces[7 - delta], e, 180);
+            out.drawRow(y, faces[6 - delta], f, 180);
+            out.drawRow(y, faces[6 - delta], e, 180);
+            out.drawRow(y, faces[11 - delta], d, 300);
+            out.drawRow(y, faces[11 - delta], a, 300);
+            out.drawRow(y, faces[10 - delta], d, 300);
+            out.drawRow(y, faces[10 - delta], a, 300);
+            out.drawRow(y, faces[9 - delta], d, 300);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[6 - delta], b, 60);
-            x += out.drawRow(y, faces[6 - delta], c, 60);
-            x += out.drawRow(y, faces[11 - delta], f, 180);
-            x += out.drawRow(y, faces[11 - delta], e, 180);
-            x += out.drawRow(y, faces[10 - delta], f, 180);
-            x += out.drawRow(y, faces[10 - delta], e, 180);
-            x += out.drawRow(y, faces[9 - delta], f, 180);
-            x += out.drawRow(y, faces[9 - delta], e, 180);
-            x += out.drawRow(y, faces[8 - delta], f, 180);
-            x += out.drawRow(y, faces[8 - delta], e, 180);
+            out.drawRow(y, faces[6 - delta], b, 60);
+            out.drawRow(y, faces[6 - delta], c, 60);
+            out.drawRow(y, faces[11 - delta], f, 180);
+            out.drawRow(y, faces[11 - delta], e, 180);
+            out.drawRow(y, faces[10 - delta], f, 180);
+            out.drawRow(y, faces[10 - delta], e, 180);
+            out.drawRow(y, faces[9 - delta], f, 180);
+            out.drawRow(y, faces[9 - delta], e, 180);
+            out.drawRow(y, faces[8 - delta], f, 180);
+            out.drawRow(y, faces[8 - delta], e, 180);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_back_right");
@@ -439,8 +429,6 @@ public class FlexagonLayout extends JFrame {
      * DOCUMENT ME!
      */
     private void drawBackLeftDodeca() {
-        int x;
-
         int delta = numFaces / 2;
 
         PNGImage out = new PNGImage(width, height);
@@ -448,39 +436,39 @@ public class FlexagonLayout extends JFrame {
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, false);
+            out.rowStart(y, false);
 
-            x += out.drawRow(y, faces[11 - delta], c, 60);
-            x += out.drawRow(y, faces[10 - delta], b, 60);
-            x += out.drawRow(y, faces[10 - delta], c, 60);
-            x += out.drawRow(y, faces[9 - delta], b, 60);
-            x += out.drawRow(y, faces[9 - delta], c, 60);
-            x += out.drawRow(y, faces[8 - delta], b, 60);
-            x += out.drawRow(y, faces[8 - delta], c, 60);
-            x += out.drawRow(y, faces[7 - delta], b, 60);
-            x += out.drawRow(y, faces[7 - delta], c, 60);
-            x += out.drawRow(y, faces[6 - delta], b, 60);
+            out.drawRow(y, faces[11 - delta], c, 60);
+            out.drawRow(y, faces[10 - delta], b, 60);
+            out.drawRow(y, faces[10 - delta], c, 60);
+            out.drawRow(y, faces[9 - delta], b, 60);
+            out.drawRow(y, faces[9 - delta], c, 60);
+            out.drawRow(y, faces[8 - delta], b, 60);
+            out.drawRow(y, faces[8 - delta], c, 60);
+            out.drawRow(y, faces[7 - delta], b, 60);
+            out.drawRow(y, faces[7 - delta], c, 60);
+            out.drawRow(y, faces[6 - delta], b, 60);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
-            x = out.rowStart(y, true);
+            out.rowStart(y, true);
 
-            x += out.drawRow(y, faces[9 - delta], d, 300);
-            x += out.drawRow(y, faces[9 - delta], a, 300);
-            x += out.drawRow(y, faces[8 - delta], d, 300);
-            x += out.drawRow(y, faces[8 - delta], a, 300);
-            x += out.drawRow(y, faces[7 - delta], d, 300);
-            x += out.drawRow(y, faces[7 - delta], a, 300);
-            x += out.drawRow(y, faces[6 - delta], d, 300);
-            x += out.drawRow(y, faces[6 - delta], a, 300);
-            x += out.drawRow(y, faces[11 - delta], b, 60);
-            x += out.drawRow(y, faces[11 - delta], c, 60);
+            out.drawRow(y, faces[9 - delta], d, 300);
+            out.drawRow(y, faces[9 - delta], a, 300);
+            out.drawRow(y, faces[8 - delta], d, 300);
+            out.drawRow(y, faces[8 - delta], a, 300);
+            out.drawRow(y, faces[7 - delta], d, 300);
+            out.drawRow(y, faces[7 - delta], a, 300);
+            out.drawRow(y, faces[6 - delta], d, 300);
+            out.drawRow(y, faces[6 - delta], a, 300);
+            out.drawRow(y, faces[11 - delta], b, 60);
+            out.drawRow(y, faces[11 - delta], c, 60);
 
-            x += out.rowFinish(x, y);
+            out.rowFinish();
         }
 
         out.close(file_prefix + "_back_left");
