@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd version="4.2.2" timestamp="2010-05-09T14:19:39.812">
+<pmd version="4.2.2" timestamp="2010-05-09T14:23:13.239">
 <file name="/Users/huxtable/Documents/workspace/flexagon-layout/src/main/java/org/kathrynhuxtable/flexagon/layout/FlexFace.java">
 <violation beginline="6" endline="6" begincolumn="8" endcolumn="21" rule="DuplicateImports" ruleset="Import Statement Rules" package="org.kathrynhuxtable.flexagon.layout" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#DuplicateImports" priority="4">
 Avoid duplicate imports such as 'java.awt.Color'
