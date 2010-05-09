@@ -1,11 +1,13 @@
 package org.kathrynhuxtable.flexagon.layout;
 
+import java.awt.Image;
 import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.awt.image.PixelGrabber;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 /**
  * Store pixels for each face of the flexagon. Supply rows of pixels for rotated
@@ -14,7 +16,7 @@ import java.io.FileNotFoundException;
  * @author Kathryn Huxtable
  */
 
-public class FlexFace {
+public class FlexagonFace {
 
     private static final double[] sin = {
         Math.sin(0 * Math.PI / 3.0), // 0 degrees ccw
@@ -44,7 +46,7 @@ public class FlexFace {
     private int   height;
 
     /**
-     * Creates a new FlexFace object.
+     * Creates a new FlexagonFace object.
      *
      * @param  imageName DOCUMENT ME!
      * @param  width     DOCUMENT ME!
@@ -52,7 +54,7 @@ public class FlexFace {
      *
      * @throws NullPointerException DOCUMENT ME!
      */
-    public FlexFace(String imageName, int width, int height) throws NullPointerException {
+    public FlexagonFace(String imageName, int width, int height) throws NullPointerException {
         this.width  = width;
         this.height = height;
 
@@ -71,21 +73,20 @@ public class FlexFace {
      * @param imageName DOCUMENT ME!
      */
     private void getImagePixels(String imageName) {
-        ImageProducer ip;
-
+        Image image = null;
         try {
-            ip = new PNGImageProducer(new FileInputStream(imageName));
-        } catch (FileNotFoundException e) {
-            throw new NullPointerException("couldn't get image " + imageName);
-        }
-
-        if (ip == null) {
-            throw new NullPointerException("couldn't get image " + imageName);
+            image = ImageIO.read(new FileInputStream(imageName));
+        } catch (FileNotFoundException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
         }
 
         raster = new int[width * height];
 
-        PixelGrabber pg = new PixelGrabber(ip, 0, 0, width, height, raster,
+        PixelGrabber pg = new PixelGrabber(image, 0, 0, width, height, raster,
                                            0, width);
 
         try {
