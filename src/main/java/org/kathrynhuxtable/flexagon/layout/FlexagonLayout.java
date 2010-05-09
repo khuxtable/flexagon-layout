@@ -30,8 +30,9 @@ public class FlexagonLayout extends JFrame {
     private static final int  e                = 4;
     private static final int  f                = 5;
 
-    private int height   = 222; // height of images
-    private int width    = 256; // width of images
+    private String file_prefix = "fleximage";
+    private int    height      = 222; // height of images
+    private int    width       = 256; // width of images
 
 // private int               height           = 1300; // height of images
 // private int               width            = 1500; // width of images
@@ -50,7 +51,7 @@ public class FlexagonLayout extends JFrame {
 // "images/Drawing Down.png",
 // };
 
-    private int numFaces = 12; // number of faces in flexagon
+    private int    numFaces    = 12; // number of faces in flexagon
 
     private String[] imageNames   = {
         "dodeca/websym.png",
@@ -72,7 +73,7 @@ public class FlexagonLayout extends JFrame {
     final String     FileMenuExit = "Exit";
 
     private FlexagonFace[] faces; // Array of flexagon faces.
-    private boolean    backFlag; // front or back of image?
+    private boolean        backFlag; // front or back of image?
 
     java.awt.MenuBar  menuBar1;
     java.awt.Menu     menu1;
@@ -191,23 +192,23 @@ public class FlexagonLayout extends JFrame {
     private void drawFrontHexa() {
         int x;
 
-        PNGImage out = new PNGImage("front", width, height, numFaces, backFlag, faces);
+        PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 0, b, 120);
-            x += out.drawRow(y, 1, c, 120);
-            x += out.drawRow(y, 2, f, 240);
-            x += out.drawRow(y, 0, c, 120);
-            x += out.drawRow(y, 1, f, 240);
-            x += out.drawRow(y, 2, e, 240);
-            x += out.drawRow(y, 0, f, 240);
-            x += out.drawRow(y, 1, e, 240);
-            x += out.drawRow(y, 2, d, 0);
-            x += out.drawRow(y, 0, e, 240);
+            x += out.drawRow(y, faces[0], b, 120);
+            x += out.drawRow(y, faces[1], c, 120);
+            x += out.drawRow(y, faces[2], f, 240);
+            x += out.drawRow(y, faces[0], c, 120);
+            x += out.drawRow(y, faces[1], f, 240);
+            x += out.drawRow(y, faces[2], e, 240);
+            x += out.drawRow(y, faces[0], f, 240);
+            x += out.drawRow(y, faces[1], e, 240);
+            x += out.drawRow(y, faces[2], d, 0);
+            x += out.drawRow(y, faces[0], e, 240);
 
             x += out.rowFinish(x, y);
         }
@@ -217,21 +218,21 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 0, e, 240);
-            x += out.drawRow(y, 1, d, 0);
-            x += out.drawRow(y, 2, a, 0);
-            x += out.drawRow(y, 0, d, 0);
-            x += out.drawRow(y, 1, a, 0);
-            x += out.drawRow(y, 2, b, 120);
-            x += out.drawRow(y, 0, a, 0);
-            x += out.drawRow(y, 1, b, 120);
-            x += out.drawRow(y, 2, c, 120);
-            x += out.drawRow(y, 0, b, 120);
+            x += out.drawRow(y, faces[0], e, 240);
+            x += out.drawRow(y, faces[1], d, 0);
+            x += out.drawRow(y, faces[2], a, 0);
+            x += out.drawRow(y, faces[0], d, 0);
+            x += out.drawRow(y, faces[1], a, 0);
+            x += out.drawRow(y, faces[2], b, 120);
+            x += out.drawRow(y, faces[0], a, 0);
+            x += out.drawRow(y, faces[1], b, 120);
+            x += out.drawRow(y, faces[2], c, 120);
+            x += out.drawRow(y, faces[0], b, 120);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_front");
     }
 
     /**
@@ -240,23 +241,25 @@ public class FlexagonLayout extends JFrame {
     private void drawBackHexa() {
         int x;
 
-        PNGImage out = new PNGImage("back", width, height, numFaces, backFlag, faces);
+        PNGImage out = new PNGImage(width, height);
+
+        int delta = numFaces / 2;
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 3, a, 300);
-            x += out.drawRow(y, 5, b, 60);
-            x += out.drawRow(y, 5, c, 60);
-            x += out.drawRow(y, 4, b, 60);
-            x += out.drawRow(y, 4, c, 60);
-            x += out.drawRow(y, 3, b, 60);
-            x += out.drawRow(y, 3, c, 60);
-            x += out.drawRow(y, 5, f, 180);
-            x += out.drawRow(y, 5, e, 180);
-            x += out.drawRow(y, 4, f, 180);
+            x += out.drawRow(y, faces[3 - delta], a, 300);
+            x += out.drawRow(y, faces[5 - delta], b, 60);
+            x += out.drawRow(y, faces[5 - delta], c, 60);
+            x += out.drawRow(y, faces[4 - delta], b, 60);
+            x += out.drawRow(y, faces[4 - delta], c, 60);
+            x += out.drawRow(y, faces[3 - delta], b, 60);
+            x += out.drawRow(y, faces[3 - delta], c, 60);
+            x += out.drawRow(y, faces[5 - delta], f, 180);
+            x += out.drawRow(y, faces[5 - delta], e, 180);
+            x += out.drawRow(y, faces[4 - delta], f, 180);
 
             x += out.rowFinish(x, y);
         }
@@ -266,21 +269,21 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 4, f, 180);
-            x += out.drawRow(y, 4, e, 180);
-            x += out.drawRow(y, 3, f, 180);
-            x += out.drawRow(y, 3, e, 180);
-            x += out.drawRow(y, 5, d, 300);
-            x += out.drawRow(y, 5, a, 300);
-            x += out.drawRow(y, 4, d, 300);
-            x += out.drawRow(y, 4, a, 300);
-            x += out.drawRow(y, 3, d, 300);
-            x += out.drawRow(y, 3, a, 300);
+            x += out.drawRow(y, faces[4 - delta], f, 180);
+            x += out.drawRow(y, faces[4 - delta], e, 180);
+            x += out.drawRow(y, faces[3 - delta], f, 180);
+            x += out.drawRow(y, faces[3 - delta], e, 180);
+            x += out.drawRow(y, faces[5 - delta], d, 300);
+            x += out.drawRow(y, faces[5 - delta], a, 300);
+            x += out.drawRow(y, faces[4 - delta], d, 300);
+            x += out.drawRow(y, faces[4 - delta], a, 300);
+            x += out.drawRow(y, faces[3 - delta], d, 300);
+            x += out.drawRow(y, faces[3 - delta], a, 300);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_back");
     }
 
     /**
@@ -289,23 +292,23 @@ public class FlexagonLayout extends JFrame {
     private void drawFrontLeftDodeca() {
         int x;
 
-        PNGImage out = new PNGImage("front_left", width, height, numFaces, backFlag, faces);
+        PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 4, f, 240);
-            x += out.drawRow(y, 0, b, 180);
-            x += out.drawRow(y, 1, c, 180);
-            x += out.drawRow(y, 4, e, 240);
-            x += out.drawRow(y, 3, f, 240);
-            x += out.drawRow(y, 2, f, 300);
-            x += out.drawRow(y, 0, c, 180);
-            x += out.drawRow(y, 3, e, 240);
-            x += out.drawRow(y, 5, d, 0);
-            x += out.drawRow(y, 1, f, 300);
+            x += out.drawRow(y, faces[4], f, 240);
+            x += out.drawRow(y, faces[0], b, 180);
+            x += out.drawRow(y, faces[1], c, 180);
+            x += out.drawRow(y, faces[4], e, 240);
+            x += out.drawRow(y, faces[3], f, 240);
+            x += out.drawRow(y, faces[2], f, 300);
+            x += out.drawRow(y, faces[0], c, 180);
+            x += out.drawRow(y, faces[3], e, 240);
+            x += out.drawRow(y, faces[5], d, 0);
+            x += out.drawRow(y, faces[1], f, 300);
 
             x += out.rowFinish(x, y);
         }
@@ -315,21 +318,21 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 1, f, 300);
-            x += out.drawRow(y, 2, e, 300);
-            x += out.drawRow(y, 5, a, 0);
-            x += out.drawRow(y, 4, d, 0);
-            x += out.drawRow(y, 0, f, 300);
-            x += out.drawRow(y, 1, e, 300);
-            x += out.drawRow(y, 4, a, 0);
-            x += out.drawRow(y, 3, d, 0);
-            x += out.drawRow(y, 2, d, 60);
-            x += out.drawRow(y, 0, e, 300);
+            x += out.drawRow(y, faces[1], f, 300);
+            x += out.drawRow(y, faces[2], e, 300);
+            x += out.drawRow(y, faces[5], a, 0);
+            x += out.drawRow(y, faces[4], d, 0);
+            x += out.drawRow(y, faces[0], f, 300);
+            x += out.drawRow(y, faces[1], e, 300);
+            x += out.drawRow(y, faces[4], a, 0);
+            x += out.drawRow(y, faces[3], d, 0);
+            x += out.drawRow(y, faces[2], d, 60);
+            x += out.drawRow(y, faces[0], e, 300);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_front_left");
     }
 
     /**
@@ -338,23 +341,23 @@ public class FlexagonLayout extends JFrame {
     private void drawFrontRightDodeca() {
         int x;
 
-        PNGImage out = new PNGImage("front_right", width, height, numFaces, backFlag, faces);
+        PNGImage out = new PNGImage(width, height);
 
         // Draw the left end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 0, e, 300);
-            x += out.drawRow(y, 3, a, 0);
-            x += out.drawRow(y, 5, b, 120);
-            x += out.drawRow(y, 1, d, 60);
-            x += out.drawRow(y, 2, a, 60);
-            x += out.drawRow(y, 5, c, 120);
-            x += out.drawRow(y, 4, b, 120);
-            x += out.drawRow(y, 0, d, 60);
-            x += out.drawRow(y, 1, a, 60);
-            x += out.drawRow(y, 4, c, 120);
+            x += out.drawRow(y, faces[0], e, 300);
+            x += out.drawRow(y, faces[3], a, 0);
+            x += out.drawRow(y, faces[5], b, 120);
+            x += out.drawRow(y, faces[1], d, 60);
+            x += out.drawRow(y, faces[2], a, 60);
+            x += out.drawRow(y, faces[5], c, 120);
+            x += out.drawRow(y, faces[4], b, 120);
+            x += out.drawRow(y, faces[0], d, 60);
+            x += out.drawRow(y, faces[1], a, 60);
+            x += out.drawRow(y, faces[4], c, 120);
 
             x += out.rowFinish(x, y);
         }
@@ -364,21 +367,21 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 4, c, 120);
-            x += out.drawRow(y, 3, b, 120);
-            x += out.drawRow(y, 2, b, 180);
-            x += out.drawRow(y, 0, a, 60);
-            x += out.drawRow(y, 3, c, 120);
-            x += out.drawRow(y, 5, f, 240);
-            x += out.drawRow(y, 1, b, 180);
-            x += out.drawRow(y, 2, c, 180);
-            x += out.drawRow(y, 5, e, 240);
-            x += out.drawRow(y, 4, f, 240);
+            x += out.drawRow(y, faces[4], c, 120);
+            x += out.drawRow(y, faces[3], b, 120);
+            x += out.drawRow(y, faces[2], b, 180);
+            x += out.drawRow(y, faces[0], a, 60);
+            x += out.drawRow(y, faces[3], c, 120);
+            x += out.drawRow(y, faces[5], f, 240);
+            x += out.drawRow(y, faces[1], b, 180);
+            x += out.drawRow(y, faces[2], c, 180);
+            x += out.drawRow(y, faces[5], e, 240);
+            x += out.drawRow(y, faces[4], f, 240);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_front_right");
     }
 
     /**
@@ -387,23 +390,25 @@ public class FlexagonLayout extends JFrame {
     private void drawBackRightDodeca() {
         int x;
 
-        PNGImage out = new PNGImage("back_right", width, height, numFaces, backFlag, faces);
+        int delta = numFaces / 2;
+
+        PNGImage out = new PNGImage(width, height);
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 8, e, 180);
-            x += out.drawRow(y, 7, f, 180);
-            x += out.drawRow(y, 7, e, 180);
-            x += out.drawRow(y, 6, f, 180);
-            x += out.drawRow(y, 6, e, 180);
-            x += out.drawRow(y, 11, d, 300);
-            x += out.drawRow(y, 11, a, 300);
-            x += out.drawRow(y, 10, d, 300);
-            x += out.drawRow(y, 10, a, 300);
-            x += out.drawRow(y, 9, d, 300);
+            x += out.drawRow(y, faces[8 - delta], e, 180);
+            x += out.drawRow(y, faces[7 - delta], f, 180);
+            x += out.drawRow(y, faces[7 - delta], e, 180);
+            x += out.drawRow(y, faces[6 - delta], f, 180);
+            x += out.drawRow(y, faces[6 - delta], e, 180);
+            x += out.drawRow(y, faces[11 - delta], d, 300);
+            x += out.drawRow(y, faces[11 - delta], a, 300);
+            x += out.drawRow(y, faces[10 - delta], d, 300);
+            x += out.drawRow(y, faces[10 - delta], a, 300);
+            x += out.drawRow(y, faces[9 - delta], d, 300);
 
             x += out.rowFinish(x, y);
         }
@@ -413,21 +418,21 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 6, b, 60);
-            x += out.drawRow(y, 6, c, 60);
-            x += out.drawRow(y, 11, f, 180);
-            x += out.drawRow(y, 11, e, 180);
-            x += out.drawRow(y, 10, f, 180);
-            x += out.drawRow(y, 10, e, 180);
-            x += out.drawRow(y, 9, f, 180);
-            x += out.drawRow(y, 9, e, 180);
-            x += out.drawRow(y, 8, f, 180);
-            x += out.drawRow(y, 8, e, 180);
+            x += out.drawRow(y, faces[6 - delta], b, 60);
+            x += out.drawRow(y, faces[6 - delta], c, 60);
+            x += out.drawRow(y, faces[11 - delta], f, 180);
+            x += out.drawRow(y, faces[11 - delta], e, 180);
+            x += out.drawRow(y, faces[10 - delta], f, 180);
+            x += out.drawRow(y, faces[10 - delta], e, 180);
+            x += out.drawRow(y, faces[9 - delta], f, 180);
+            x += out.drawRow(y, faces[9 - delta], e, 180);
+            x += out.drawRow(y, faces[8 - delta], f, 180);
+            x += out.drawRow(y, faces[8 - delta], e, 180);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_back_right");
     }
 
     /**
@@ -436,23 +441,25 @@ public class FlexagonLayout extends JFrame {
     private void drawBackLeftDodeca() {
         int x;
 
-        PNGImage out = new PNGImage("back_left", width, height, numFaces, backFlag, faces);
+        int delta = numFaces / 2;
+
+        PNGImage out = new PNGImage(width, height);
 
         // Draw the right end
 
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, false);
 
-            x += out.drawRow(y, 11, c, 60);
-            x += out.drawRow(y, 10, b, 60);
-            x += out.drawRow(y, 10, c, 60);
-            x += out.drawRow(y, 9, b, 60);
-            x += out.drawRow(y, 9, c, 60);
-            x += out.drawRow(y, 8, b, 60);
-            x += out.drawRow(y, 8, c, 60);
-            x += out.drawRow(y, 7, b, 60);
-            x += out.drawRow(y, 7, c, 60);
-            x += out.drawRow(y, 6, b, 60);
+            x += out.drawRow(y, faces[11 - delta], c, 60);
+            x += out.drawRow(y, faces[10 - delta], b, 60);
+            x += out.drawRow(y, faces[10 - delta], c, 60);
+            x += out.drawRow(y, faces[9 - delta], b, 60);
+            x += out.drawRow(y, faces[9 - delta], c, 60);
+            x += out.drawRow(y, faces[8 - delta], b, 60);
+            x += out.drawRow(y, faces[8 - delta], c, 60);
+            x += out.drawRow(y, faces[7 - delta], b, 60);
+            x += out.drawRow(y, faces[7 - delta], c, 60);
+            x += out.drawRow(y, faces[6 - delta], b, 60);
 
             x += out.rowFinish(x, y);
         }
@@ -462,20 +469,20 @@ public class FlexagonLayout extends JFrame {
         for (int y = 0; y < height / 2; y++) {
             x = out.rowStart(y, true);
 
-            x += out.drawRow(y, 9, d, 300);
-            x += out.drawRow(y, 9, a, 300);
-            x += out.drawRow(y, 8, d, 300);
-            x += out.drawRow(y, 8, a, 300);
-            x += out.drawRow(y, 7, d, 300);
-            x += out.drawRow(y, 7, a, 300);
-            x += out.drawRow(y, 6, d, 300);
-            x += out.drawRow(y, 6, a, 300);
-            x += out.drawRow(y, 11, b, 60);
-            x += out.drawRow(y, 11, c, 60);
+            x += out.drawRow(y, faces[9 - delta], d, 300);
+            x += out.drawRow(y, faces[9 - delta], a, 300);
+            x += out.drawRow(y, faces[8 - delta], d, 300);
+            x += out.drawRow(y, faces[8 - delta], a, 300);
+            x += out.drawRow(y, faces[7 - delta], d, 300);
+            x += out.drawRow(y, faces[7 - delta], a, 300);
+            x += out.drawRow(y, faces[6 - delta], d, 300);
+            x += out.drawRow(y, faces[6 - delta], a, 300);
+            x += out.drawRow(y, faces[11 - delta], b, 60);
+            x += out.drawRow(y, faces[11 - delta], c, 60);
 
             x += out.rowFinish(x, y);
         }
 
-        out.close();
+        out.close(file_prefix + "_back_left");
     }
 }

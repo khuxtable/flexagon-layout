@@ -16,12 +16,8 @@ import javax.imageio.ImageIO;
  */
 public class PNGImage {
 
-    private String     file;
-    private int        width;
-    private int        height;
-    private int        numFaces;
-    private boolean    backFlag;
-    private FlexagonFace[] faces;
+    private int width;
+    private int height;
 
     private BufferedImage image;
     private Graphics2D    g;
@@ -31,20 +27,12 @@ public class PNGImage {
     /**
      * Creates a new PNGImage object.
      *
-     * @param file     DOCUMENT ME!
-     * @param width    DOCUMENT ME!
-     * @param height   DOCUMENT ME!
-     * @param numFaces DOCUMENT ME!
-     * @param backFlag DOCUMENT ME!
-     * @param faces    DOCUMENT ME!
+     * @param width  DOCUMENT ME!
+     * @param height DOCUMENT ME!
      */
-    public PNGImage(String file, int width, int height, int numFaces, boolean backFlag, FlexagonFace[] faces) {
-        this.file     = file;
-        this.width    = width;
-        this.height   = height;
-        this.numFaces = numFaces;
-        this.backFlag = backFlag;
-        this.faces    = faces;
+    public PNGImage(int width, int height) {
+        this.width  = width;
+        this.height = height;
 
         image = new BufferedImage((int) (2.75f * width), height, BufferedImage.TYPE_INT_RGB);
         g     = image.createGraphics();
@@ -61,13 +49,9 @@ public class PNGImage {
      *
      * @return DOCUMENT ME!
      */
-    public int drawRow(int y, int face, int facet, int rot) {
+    public int drawRow(int y, FlexagonFace face, int facet, int rot) {
         if (y % 10 == 0) {
             System.err.print("On row " + y + "       \r");
-        }
-
-        if (backFlag) {
-            face -= numFaces / 2;
         }
 
         rot /= 60;
@@ -81,7 +65,7 @@ public class PNGImage {
 
         int[] pixels = new int[width];
 
-        int w = faces[face].getRow(y, facet, rot, pixels);
+        int w = face.getRow(y, facet, rot, pixels);
 
         if (upsideDown) {
             for (int i = w - 1; i >= 0; i--) {
@@ -153,12 +137,14 @@ public class PNGImage {
 
     /**
      * DOCUMENT ME!
+     *
+     * @param filename the file name.
      */
-    public void close() {
+    public void close(String filename) {
         g.dispose();
 
         try {
-            ImageIO.write(image, "png", new File("fleximage_" + file + ".png"));
+            ImageIO.write(image, "png", new File(filename + ".png"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
