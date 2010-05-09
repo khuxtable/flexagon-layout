@@ -1,0 +1,24 @@
+-classpath
+'/Users/huxtable/Documents/workspace/flexagon-layout/target/classes'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'/Users/huxtable/Documents/workspace/flexagon-layout/src/main/java'
+-author
+-bottom
+'Copyright &#169; 1996-2010 <a href="http://www.kathrynhuxtable.org">kathrynhuxtable.org</a>. All Rights Reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/huxtable/Documents/workspace/flexagon-layout/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'Flexagon layout application 1.0-SNAPSHOT API'
+-link
+'http://java.sun.com/javase/6/docs/api'
+-use
+-version
+-windowtitle
+'Flexagon layout application 1.0-SNAPSHOT API'
