@@ -1,5 +1,7 @@
 .classpath
 .project
+*.png
+/dodeca
 /.settings
 /gen
 /target
