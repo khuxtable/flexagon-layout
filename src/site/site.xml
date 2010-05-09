@@ -1,0 +1,25 @@
+<project name="Flexagon Layout Application">
+    <publishDate position="navigation-bottom" format="dd MMM yyyy" />
+    <version position="left" />
+    <bannerLeft>
+        <name>kathrynhuxtable.org</name>
+        <src>http://www.kathrynhuxtable.org/imagedir/kathrynhuxtable.org.gif</src>
+        <href>http://www.kathrynhuxtable.org/</href>
+    </bannerLeft>
+    <bannerRight>
+        <name>Flexagon Layout Application</name>
+    </bannerRight>
+    <skin>
+        <groupId>org.kathrynhuxtable.maven.skins</groupId>
+        <artifactId>green-site-skin</artifactId>
+        <version>1.1</version>
+    </skin>
+    <body>
+        <links>
+            <item name="Kathryn Huxtable's Projects" href="http://www.kathrynhuxtable.org/blog/projects/" />
+            <item name="kathrynhuxtable.org" href="http://www.kathrynhuxtable.org" />
+        </links>
+
+        $reports
+    </body>
+</project>
