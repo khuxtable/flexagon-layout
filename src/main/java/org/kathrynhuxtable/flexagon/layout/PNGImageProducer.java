@@ -1,29 +1,17 @@
 package org.kathrynhuxtable.flexagon.layout;
 
-//
-// Copyright (c) 1997, Jason Marshall.  All Rights Reserved
-//
-// The author makes no representations or warranties regarding the suitability,
-// reliability or stability of this code.  This code is provided AS IS.  The
-// author shall not be liable for any damages suffered as a result of using,
-// modifying or redistributing this software or any derivitives thereof.
-// Permission to use, reproduce, modify and/or (re)distribute this software is
-// hereby granted.
-
-/**
- * @(#)PNGImageProducer.java	0.88 97/4/14 Jason Marshall
- **/
-
 import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.ImageConsumer;
 import java.awt.image.ImageProducer;
 import java.awt.image.IndexColorModel;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -34,96 +22,98 @@ import java.util.zip.InflaterInputStream;
 // IOExceptions all over the place.  -JDM
 
 /**
- * ImageProducer which produces an Image from a PNG image
- * Note that making this implement the Runnable interface it but one way to
- * handle the problems inherent with asynchronous image production.  This class
- * is provided more as a proof of concept, and sample implementation of the PNG
- * decoder in Java.
+ * ImageProducer which produces an Image from a PNG image Note that making this
+ * implement the Runnable interface it but one way to handle the problems
+ * inherent with asynchronous image production. This class is provided more as a
+ * proof of concept, and sample implementation of the PNG decoder in Java.
  *
- * @version	0.88 14 May 1997
- * @author 	Jason Marshall
+ * @version 0.88 14 May 1997
+ * @author  Jason Marshall
  */
 
 public class PNGImageProducer implements ImageProducer, Runnable {
-    private int dataWidth;
-    private int dataHeight;
-    private int width = -1;
-    private int height = -1;
-    private int sigmask = 0xffff;
-    private ColorModel model;
-    private Object pixels;
-    private int ipixels[];
-    private byte bpixels[];
-    private Hashtable properties;
-    private Vector theConsumers;
-    private boolean multipass;
-    private boolean complete;
-    private boolean error;
-    // TODO: make private when inner class created -JDM
-    InputStream underlyingStream;
-    // TODO: make private when inner class created -JDM
-    DataInputStream inputStream;
-    private Thread controlThread;
-    private boolean infoAvailable = false;
-    private boolean completePasses = false;
 
-    //TODO: set from system properties -JDM
-    private int updateDelay = 750;
+    static final int CHUNK_bKGD = 0x624B4744; // "bKGD"
+    static final int CHUNK_cHRM = 0x6348524D; // "cHRM"
+    static final int CHUNK_gAMA = 0x67414D41; // "gAMA"
+    static final int CHUNK_hIST = 0x68495354; // "hIST"
+    static final int CHUNK_IDAT = 0x49444154; // "IDAT"
+    static final int CHUNK_IEND = 0x49454E44; // "IEND"
+    static final int CHUNK_IHDR = 0x49484452; // "IHDR"
+    static final int CHUNK_PLTE = 0x504C5445; // "PLTE"
+    static final int CHUNK_pHYs = 0x70485973; // "pHYs"
+    static final int CHUNK_sBIT = 0x73424954; // "sBIT"
+    static final int CHUNK_tEXt = 0x74455874; // "tEXt"
+    static final int CHUNK_tIME = 0x74494D45; // "tIME"
+    static final int CHUNK_tRNS = 0x74524E53; // "tIME"
+    static final int CHUNK_zTXt = 0x7A545874; // "zTXt"
+
+    static final int[] startingRow      = { 0, 0, 0, 4, 0, 2, 0, 1 };
+    static final int[] startingCol      = { 0, 0, 4, 0, 2, 0, 1, 0 };
+    static final int[] rowInc           = { 1, 8, 8, 8, 4, 4, 2, 2 };
+    static final int[] colInc           = { 1, 8, 8, 4, 4, 2, 2, 1 };
+    static final int[] blockHeight      = { 1, 8, 8, 4, 4, 2, 2, 1 };
+    static final int[] blockWidth       = { 1, 8, 4, 4, 2, 2, 1, 1 };
+    private int        dataWidth;
+    private int        dataHeight;
+    private int        width            = -1;
+    private int        height           = -1;
+    private ColorModel model;
+    private Object     pixels;
+    private int[]      ipixels;
+    private byte[]     bpixels;
+    private Hashtable  properties;
+    private Vector     theConsumers;
+    private boolean    multipass;
+    private boolean    complete;
+    private boolean    error;
+    // TODO: make private when inner class created -JDM
+    InputStream        underlyingStream;
+    // TODO: make private when inner class created -JDM
+    DataInputStream    inputStream;
+    private Thread     controlThread;
+    private boolean    infoAvailable    = false;
+    private boolean    completePasses   = false;
+
+    // TODO: set from system properties -JDM
+    private int        updateDelay      = 750;
 
     // Image decoding state variables
 
-    private boolean headerFound = false;
-    private int compressionMethod = -1;
-    private int depth = -1;
-    private int colorType = -1;
-    private int filterMethod = -1;
-    private int interlaceMethod = -1;
-    private int pass;
-    private byte palette[];
-    private boolean transparency;
+    private boolean    headerFound      = false;
+    private int        depth            = -1;
+    private int        colorType        = -1;
+    private int        interlaceMethod  = -1;
+    private int        pass;
+    private byte[]     palette;
+    private boolean    transparency;
 
     // TODO: make private when innerclass created -JDM
-    int chunkLength;
+    int                chunkLength;
     // TODO: make private when innerclass created -JDM
-    int chunkType;
+    int                chunkType;
     // TODO: make private when innerclass created -JDM
-    boolean needChunkInfo = true;
-
-    static final int CHUNK_bKGD = 0x624B4744;   // "bKGD"
-    static final int CHUNK_cHRM = 0x6348524D;   // "cHRM"
-    static final int CHUNK_gAMA = 0x67414D41;   // "gAMA"
-    static final int CHUNK_hIST = 0x68495354;   // "hIST"
-    static final int CHUNK_IDAT = 0x49444154;   // "IDAT"
-    static final int CHUNK_IEND = 0x49454E44;   // "IEND"
-    static final int CHUNK_IHDR = 0x49484452;   // "IHDR"
-    static final int CHUNK_PLTE = 0x504C5445;   // "PLTE"
-    static final int CHUNK_pHYs = 0x70485973;   // "pHYs"
-    static final int CHUNK_sBIT = 0x73424954;   // "sBIT"
-    static final int CHUNK_tEXt = 0x74455874;   // "tEXt"
-    static final int CHUNK_tIME = 0x74494D45;   // "tIME"
-    static final int CHUNK_tRNS = 0x74524E53;   // "tIME"
-    static final int CHUNK_zTXt = 0x7A545874;   // "zTXt"
-
-    static final int startingRow[]  =  { 0, 0, 0, 4, 0, 2, 0, 1 };
-    static final int startingCol[]  =  { 0, 0, 4, 0, 2, 0, 1, 0 };
-    static final int rowInc[]       =  { 1, 8, 8, 8, 4, 4, 2, 2 };
-    static final int colInc[]       =  { 1, 8, 8, 4, 4, 2, 2, 1 };
-    static final int blockHeight[]  =  { 1, 8, 8, 4, 4, 2, 2, 1 };
-    static final int blockWidth[]   =  { 1, 8, 4, 4, 2, 2, 1, 1 };
+    boolean            needChunkInfo    = true;
 
     /**
+     * Creates a new PNGImageProducer object.
      *
-     **/
+     * @param is DOCUMENT ME!
+     */
 
     public PNGImageProducer(InputStream is) {
         theConsumers = new Vector();
-        properties = new Hashtable();
+        properties   = new Hashtable();
         if (!(is instanceof BufferedInputStream))
             is = new BufferedInputStream(is, 1024);
+
         underlyingStream = is;
-        inputStream = new DataInputStream(underlyingStream);
+        inputStream      = new DataInputStream(underlyingStream);
     }
 
+    /**
+     * @see java.awt.image.ImageProducer#addConsumer(java.awt.image.ImageConsumer)
+     */
     public synchronized void addConsumer(ImageConsumer ic) {
         if (theConsumers.contains(ic)) {
             return;
@@ -140,6 +130,7 @@ public class PNGImageProducer implements ImageProducer, Runnable {
                 } else {
                     ic.imageComplete(ImageConsumer.STATICIMAGEDONE);
                 }
+
                 removeConsumer(ic);
             }
         } catch (Exception e) {
@@ -149,36 +140,45 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param rowStart DOCUMENT ME!
+     */
     private void blockFill(int rowStart) {
         int counter;
-        int dw = dataWidth;
+        int dw   = dataWidth;
         int pass = this.pass;
-        int w = blockWidth[pass];
+        int w    = blockWidth[pass];
         int sCol = startingCol[pass];
         int cInc = colInc[pass];
         int wInc = cInc - w;
         int maxW = rowStart + dw - w;
         int len;
 
-        int h = blockHeight[pass];
-        int maxH = rowStart + (dw * h);
+        int h        = blockHeight[pass];
+        int maxH     = rowStart + (dw * h);
         int startPos = rowStart + sCol;
 
         counter = startPos;
 
         if (colorType == 3) {
-            byte bpix[] = bpixels;
-            byte pixel;
+            byte[] bpix  = bpixels;
+            byte   pixel;
+
             len = bpix.length;
 
             for (; counter <= maxW;) {
                 int end = counter + w;
+
                 pixel = bpix[counter++];
                 for (; counter < end; counter++) {
                     bpix[counter] = pixel;
                 }
+
                 counter += wInc;
             }
+
             maxW += w;
 
             if (counter < maxW) {
@@ -194,16 +194,19 @@ public class PNGImageProducer implements ImageProducer, Runnable {
                 System.arraycopy(bpix, startPos, bpix, counter, dw - sCol);
             }
         } else {
-            int ipix[] = ipixels;
-            int pixel;
+            int[] ipix  = ipixels;
+            int   pixel;
+
             len = ipix.length;
 
             for (; counter <= maxW;) {
                 int end = counter + w;
+
                 pixel = ipix[counter++];
                 for (; counter < end; counter++) {
                     ipix[counter] = pixel;
                 }
+
                 counter += wInc;
             }
 
@@ -224,28 +227,45 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
-    private boolean filterRow(byte inbuf[], int pix[], int upix[],
-                                int rowFilter, int boff) {
+    /**
+     * DOCUMENT ME!
+     *
+     * @param  inbuf     DOCUMENT ME!
+     * @param  pix       DOCUMENT ME!
+     * @param  upix      DOCUMENT ME!
+     * @param  rowFilter DOCUMENT ME!
+     * @param  boff      DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    private boolean filterRow(byte[] inbuf, int[] pix, int[] upix, int rowFilter, int boff) {
         int rowWidth = pix.length;
 
         switch (rowFilter) {
-          case 0:
+
+        case 0:
             for (int x = 0; x < rowWidth; x++) {
                 pix[x] = 0xff & inbuf[x];
             }
+
             break;
-          case 1: {
+
+        case 1: {
             int x = 0;
-            for ( ; x < boff; x++) {
+
+            for (; x < boff; x++) {
                 pix[x] = 0xff & inbuf[x];
             }
-            for ( ; x < rowWidth; x++) {
+
+            for (; x < rowWidth; x++) {
                 pix[x] = 0xff & (inbuf[x] + pix[x - boff]);
             }
+
             break;
-          }
-          case 2: {
-            if (upix != null){
+        }
+
+        case 2: {
+            if (upix != null) {
                 for (int x = 0; x < rowWidth; x++) {
                     pix[x] = 0xff & (upix[x] + inbuf[x]);
                 }
@@ -254,43 +274,64 @@ public class PNGImageProducer implements ImageProducer, Runnable {
                     pix[x] = 0xff & inbuf[x];
                 }
             }
+
             break;
-          }
-          case 3: {
+        }
+
+        case 3: {
             if (upix != null) {
                 int x = 0;
-                for ( ; x < boff; x++) {
+
+                for (; x < boff; x++) {
                     int rval = upix[x];
-                    pix[x] = 0xff & ((rval>>1) + inbuf[x]);
+
+                    pix[x] = 0xff & ((rval >> 1) + inbuf[x]);
                 }
-                for ( ; x < rowWidth; x++) {
+
+                for (; x < rowWidth; x++) {
                     int rval = upix[x] + pix[x - boff];
-                    pix[x] = 0xff & ((rval>>1) + inbuf[x]);
+
+                    pix[x] = 0xff & ((rval >> 1) + inbuf[x]);
                 }
             } else {
                 int x = 0;
-                for ( ; x < boff; x++) {
+
+                for (; x < boff; x++) {
                     pix[x] = 0xff & inbuf[x];
                 }
-                for ( ; x < rowWidth; x++) {
+
+                for (; x < rowWidth; x++) {
                     int rval = pix[x - boff];
-                    pix[x] = 0xff & ((rval>>1) + inbuf[x]);
+
+                    pix[x] = 0xff & ((rval >> 1) + inbuf[x]);
                 }
             }
+
             break;
-          }
-          case 4: {
+        }
+
+        case 4: {
             if (upix != null) {
                 int x = 0;
-                for ( ; x < boff; x++) {
+
+                for (; x < boff; x++) {
                     pix[x] = 0xff & (upix[x] + inbuf[x]);
                 }
-                for ( ; x < rowWidth; x++) {
-                    int a, b, c, p, pa, pb, pc, rval;
-                    a = pix[x - boff];
-                    b = upix[x];
-                    c = upix[x - boff];
-                    p = a + b - c;
+
+                for (; x < rowWidth; x++) {
+                    int a;
+                    int b;
+                    int c;
+                    int p;
+                    int pa;
+                    int pb;
+                    int pc;
+                    int rval;
+
+                    a  = pix[x - boff];
+                    b  = upix[x];
+                    c  = upix[x - boff];
+                    p  = a + b - c;
                     pa = p > a ? p - a : a - p;
                     pb = p > b ? p - b : b - p;
                     pc = p > c ? p - c : c - p;
@@ -301,132 +342,184 @@ public class PNGImageProducer implements ImageProducer, Runnable {
                     } else {
                         rval = c;
                     }
+
                     pix[x] = 0xff & (rval + inbuf[x]);
                 }
             } else {
                 int x = 0;
-                for ( ; x < boff; x++) {
+
+                for (; x < boff; x++) {
                     pix[x] = 0xff & inbuf[x];
                 }
-                for ( ; x < rowWidth; x++) {
+
+                for (; x < rowWidth; x++) {
                     int rval = pix[x - boff];
+
                     pix[x] = 0xff & (rval + inbuf[x]);
                 }
             }
+
             break;
-          }
-          default:
+        }
+
+        default:
             return false;
         }
+
         return true;
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlebKGD() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlecHRM() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handleChunk() throws IOException {
         if (needChunkInfo) {
-            chunkLength = inputStream.readInt();
-            chunkType = inputStream.readInt();
+            chunkLength   = inputStream.readInt();
+            chunkType     = inputStream.readInt();
             needChunkInfo = false;
         }
 
         // Guarantee that chunks can't overread their bounds
         /*inputStream = new DataInputStream(
-                        new MeteredInputStream(underlyingStream,
-                                                chunkLength));
-        */
+         *              new MeteredInputStream(underlyingStream,
+         *                                      chunkLength));
+         */
         switch (chunkType) {
-          case CHUNK_bKGD:
+
+        case CHUNK_bKGD:
             handlebKGD();
             break;
-          case CHUNK_cHRM:
+
+        case CHUNK_cHRM:
             handlecHRM();
             break;
-          case CHUNK_gAMA:
+
+        case CHUNK_gAMA:
             handlegAMA();
             break;
-          case CHUNK_hIST:
+
+        case CHUNK_hIST:
             handlehIST();
             break;
-          case CHUNK_IDAT:
+
+        case CHUNK_IDAT:
             handleIDAT();
             break;
-          case CHUNK_IEND:
+
+        case CHUNK_IEND:
             handleIEND();
             break;
-          case CHUNK_IHDR:
+
+        case CHUNK_IHDR:
             handleIHDR();
             break;
-          case CHUNK_pHYs:
+
+        case CHUNK_pHYs:
             handlepHYs();
             break;
-          case CHUNK_PLTE:
+
+        case CHUNK_PLTE:
             handlePLTE();
             break;
-          case CHUNK_sBIT:
+
+        case CHUNK_sBIT:
             handlesBIT();
             break;
-          case CHUNK_tEXt:
+
+        case CHUNK_tEXt:
             handletEXt();
             break;
-          case CHUNK_tIME:
+
+        case CHUNK_tIME:
             handletIME();
             break;
-          case CHUNK_tRNS:
+
+        case CHUNK_tRNS:
             handletRNS();
             break;
-          case CHUNK_zTXt:
+
+        case CHUNK_zTXt:
             handlezTXt();
             break;
-          default:
-            System.err.println("unrecognized chunk type " +
-                                Integer.toHexString(chunkType) + ". skipping");
+
+        default:
+            System.err.println("unrecognized chunk type " + Integer.toHexString(chunkType) + ". skipping");
             inputStream.skip(chunkLength);
         }
-        //inputStream = new DataInputStream(underlyingStream);
-        int crc = inputStream.readInt();
+        // inputStream = new DataInputStream(underlyingStream);
+        inputStream.readInt();
+
         needChunkInfo = true;
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlegAMA() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlehIST() throws IOException {
         inputStream.skip(chunkLength);
     }
 
     /**
-     * Handle the image data chunks.  Note that sending info to ImageConsumers
-     * is delayed until the first IDAT chunk is seen.  This allows for any
-     * changes in ancilliary chunks that may alter the overall properties of
-     * the image, such as aspect ratio altering the image dimensions.  We
-     * assume that all ancilliary chunks which have these effects will appear
-     * before the first IDAT chunk, and once seen, image properties are set in
-     * stone.
-     **/
+     * Handle the image data chunks. Note that sending info to ImageConsumers is
+     * delayed until the first IDAT chunk is seen. This allows for any changes
+     * in ancilliary chunks that may alter the overall properties of the image,
+     * such as aspect ratio altering the image dimensions. We assume that all
+     * ancilliary chunks which have these effects will appear before the first
+     * IDAT chunk, and once seen, image properties are set in stone.
+     *
+     * @throws IOException DOCUMENT ME!
+     */
 
     private void handleIDAT() throws IOException {
         if (!infoAvailable) {
             if (width == -1)
                 width = dataWidth;
+
             if (height == -1)
                 height = dataHeight;
+
             setColorModel();
             if (interlaceMethod != 0)
                 multipass = true;
 
             Vector consumers;
+
             synchronized (this) {
                 infoAvailable = true;
-                consumers = (Vector) theConsumers.clone();
+                consumers     = (Vector) theConsumers.clone();
             }
+
             for (int i = 0; i < consumers.size(); i++) {
                 initConsumer((ImageConsumer) consumers.elementAt(i));
             }
@@ -437,24 +530,41 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         sendPixels(0, 0, width, height);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handleIEND() throws IOException {
         complete = true;
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handleIHDR() throws IOException {
         if (headerFound)
             throw new IOException("Extraneous IHDR chunk encountered.");
+
         if (chunkLength != 13)
             throw new IOException("IHDR chunk length wrong: " + chunkLength);
-        dataWidth = inputStream.readInt();
+
+        dataWidth  = inputStream.readInt();
         dataHeight = inputStream.readInt();
-        depth = inputStream.read();
-        colorType = inputStream.read();
-        compressionMethod = inputStream.read();
-        filterMethod = inputStream.read();
+        depth      = inputStream.read();
+        colorType  = inputStream.read();
+        /*compressionMethod = */ inputStream.read();
+        /*filterMethod      =*/ inputStream.read();
         interlaceMethod = inputStream.read();
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlePLTE() throws IOException {
         if (colorType == 3) {
             palette = new byte[chunkLength];
@@ -465,43 +575,72 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlepHYs() throws IOException {
         /*  Not yet implemented -JDM
-        int w = inputStream.readInt();
-        int h = inputStream.readInt();
-        inputStream.read();
-        width = dataWidth * w / h;
-        height = dataHeight * h / w;
-        */
+         * int w = inputStream.readInt();
+         * int h = inputStream.readInt();
+         * inputStream.read();
+         * width = dataWidth * w / h;
+         * height = dataHeight * h / w;
+         */
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlesBIT() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handletEXt() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handletIME() throws IOException {
         if (chunkLength != 7)
             System.err.println("tIME chunk length incorrect: " + chunkLength);
+
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handletRNS() throws IOException {
-        int chunkLen = chunkLength;
-		if (palette == null)
-			throw new IOException("tRNS chunk encountered before pLTE");
+// int chunkLen = chunkLength;
 
-		int len = palette.length;
+        if (palette == null)
+            throw new IOException("tRNS chunk encountered before pLTE");
+
+        int len = palette.length;
 
         switch (colorType) {
-          case 3: {
+
+        case 3: {
             transparency = true;
-            int transLength = len/3;
-            byte[] trans = new byte[transLength];
+            int    transLength = len / 3;
+            byte[] trans       = new byte[transLength];
+
             inputStream.readFully(trans, 0, chunkLength);
 
             byte b = (byte) 0xff;
@@ -521,240 +660,312 @@ public class PNGImageProducer implements ImageProducer, Runnable {
 
             palette = newPalette;
             break;
-          }
-          default:
+        }
+
+        default:
             inputStream.skip(chunkLength);
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handlezTXt() throws IOException {
         inputStream.skip(chunkLength);
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void handleSignature() throws IOException {
-        if ((inputStream.read() != 137) ||
-            (inputStream.read() != 80) ||
-            (inputStream.read() != 78) ||
-            (inputStream.read() != 71) ||
-            (inputStream.read() != 13) ||
-            (inputStream.read() != 10) ||
-            (inputStream.read() != 26) ||
-            (inputStream.read() != 10)) {
+        if ((inputStream.read() != 137) || (inputStream.read() != 80) || (inputStream.read() != 78) || (inputStream.read() != 71)
+                || (inputStream.read() != 13) || (inputStream.read() != 10) || (inputStream.read() != 26) || (inputStream.read() != 10)) {
             throw new IOException("Not a PNG File");
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param ic DOCUMENT ME!
+     */
     private void initConsumer(ImageConsumer ic) {
         if (infoAvailable) {
             if (isConsumer(ic)) {
                 ic.setDimensions(width, height);
             }
+
             if (isConsumer(ic)) {
                 ic.setProperties(properties);
             }
+
             if (isConsumer(ic)) {
                 ic.setColorModel(model);
             }
+
             if (isConsumer(ic)) {
-                ic.setHints(multipass ?
-                                        (ImageConsumer.TOPDOWNLEFTRIGHT |
-                                        ImageConsumer.COMPLETESCANLINES)
-                                    : (ImageConsumer.TOPDOWNLEFTRIGHT |
-                                        ImageConsumer.COMPLETESCANLINES |
-                                        ImageConsumer.SINGLEPASS |
-                                        ImageConsumer.SINGLEFRAME));
+                ic.setHints(multipass
+                            ? (ImageConsumer.TOPDOWNLEFTRIGHT | ImageConsumer.COMPLETESCANLINES)
+                            : (ImageConsumer.TOPDOWNLEFTRIGHT | ImageConsumer.COMPLETESCANLINES | ImageConsumer.SINGLEPASS
+                                   | ImageConsumer.SINGLEFRAME));
             }
         }
     }
 
-    private void insertGreyPixels(int pix[], int offset, int samples) {
-        int p = pix[0];
-        int ipix[] = ipixels;
-        int cInc = colInc[pass];
-        int rs = 0;
+    /**
+     * DOCUMENT ME!
+     *
+     * @param pix     DOCUMENT ME!
+     * @param offset  DOCUMENT ME!
+     * @param samples DOCUMENT ME!
+     */
+    private void insertGreyPixels(int[] pix, int offset, int samples) {
+        int   p    = pix[0];
+        int[] ipix = ipixels;
+        int   cInc = colInc[pass];
+        int   rs   = 0;
 
         switch (colorType) {
-          case 0: {
+
+        case 0: {
             switch (depth) {
-              case 1: {
+
+            case 1: {
                 for (int j = 0; j < samples; j++, offset += cInc) {
                     if (rs != 0) {
                         rs--;
                     } else {
                         rs = 7;
-                        p = pix[j>>3];
+                        p  = pix[j >> 3];
                     }
-                    ipix[offset] = (p>>rs) & 0x1;
+
+                    ipix[offset] = (p >> rs) & 0x1;
                 }
+
                 break;
-              }
-              case 2: {
+            }
+
+            case 2: {
                 for (int j = 0; j < samples; j++, offset += cInc) {
                     if (rs != 0) {
                         rs -= 2;
                     } else {
                         rs = 6;
-                        p = pix[j>>2];
+                        p  = pix[j >> 2];
                     }
-                    ipix[offset] = (p>>rs) & 0x3;
+
+                    ipix[offset] = (p >> rs) & 0x3;
                 }
+
                 break;
-              }
-              case 4: {
+            }
+
+            case 4: {
                 for (int j = 0; j < samples; j++, offset += cInc) {
                     if (rs != 0) {
                         rs = 0;
                     } else {
                         rs = 4;
-                        p = pix[j>>1];
+                        p  = pix[j >> 1];
                     }
-                    ipix[offset] = (p>>rs) & 0xf;
+
+                    ipix[offset] = (p >> rs) & 0xf;
                 }
+
                 break;
-              }
-              case 8: {
+            }
+
+            case 8: {
                 for (int j = 0; j < samples; offset += cInc) {
                     ipix[offset] = (byte) pix[j++];
                 }
+
                 break;
-              }
-              case 16: {
-                samples = samples<<1;
+            }
+
+            case 16: {
+                samples = samples << 1;
                 for (int j = 0; j < samples; j += 2, offset += cInc) {
                     ipix[offset] = pix[j];
                 }
-                break;
-              }
-              default:
+
                 break;
             }
+
+            default:
+                break;
+            }
+
             break;
-          }
-          case 4: {
+        }
+
+        case 4: {
             if (depth == 8) {
                 for (int j = 0; j < samples; offset += cInc) {
-                    ipix[offset] = (pix[j++]<<8) | pix[j++];
+                    ipix[offset] = (pix[j++] << 8) | pix[j++];
                 }
             } else {
-                samples = samples<<1;
+                samples = samples << 1;
                 for (int j = 0; j < samples; j += 2, offset += cInc) {
-                    ipix[offset] = (pix[j]<<8) | pix[j+=2];
+                    ipix[offset] = (pix[j] << 8) | pix[j += 2];
                 }
             }
+
             break;
-          }
+        }
         }
     }
 
-    private void insertPalettedPixels(int pix[], int offset, int samples) {
-        int rs = 0;
-        int p = pix[0];
-        byte bpix[] = bpixels;
-        int cInc = colInc[pass];
+    /**
+     * DOCUMENT ME!
+     *
+     * @param pix     DOCUMENT ME!
+     * @param offset  DOCUMENT ME!
+     * @param samples DOCUMENT ME!
+     */
+    private void insertPalettedPixels(int[] pix, int offset, int samples) {
+        int    rs   = 0;
+        int    p    = pix[0];
+        byte[] bpix = bpixels;
+        int    cInc = colInc[pass];
 
         switch (depth) {
-          case 1: {
+
+        case 1: {
             for (int j = 0; j < samples; j++, offset += cInc) {
                 if (rs != 0) {
                     rs--;
                 } else {
                     rs = 7;
-                    p = pix[j>>3];
+                    p  = pix[j >> 3];
                 }
-                bpix[offset] = (byte) ((p>>rs) & 0x1);
+
+                bpix[offset] = (byte) ((p >> rs) & 0x1);
             }
+
             break;
-          }
-          case 2: {
+        }
+
+        case 2: {
             for (int j = 0; j < samples; j++, offset += cInc) {
                 if (rs != 0) {
                     rs -= 2;
                 } else {
                     rs = 6;
-                    p = pix[j>>2];
+                    p  = pix[j >> 2];
                 }
-                bpix[offset] = (byte) ((p>>rs) & 0x3);
+
+                bpix[offset] = (byte) ((p >> rs) & 0x3);
             }
+
             break;
-          }
-          case 4: {
+        }
+
+        case 4: {
             for (int j = 0; j < samples; j++, offset += cInc) {
                 if (rs != 0) {
                     rs = 0;
                 } else {
                     rs = 4;
-                    p = pix[j>>1];
+                    p  = pix[j >> 1];
                 }
-                bpix[offset] = (byte) ((p>>rs) & 0xf);
+
+                bpix[offset] = (byte) ((p >> rs) & 0xf);
             }
+
             break;
-          }
-          case 8: {
+        }
+
+        case 8: {
             for (int j = 0; j < samples; j++, offset += cInc) {
                 bpix[offset] = (byte) pix[j];
             }
-            break;
-          }
-          default:
+
             break;
         }
-    }
 
-    private void insertPixels(int pix[], int offset, int samples) {
-        switch (colorType) {
-          case 0:
-          case 4: {
-            insertGreyPixels(pix, offset, samples);
-            break;
-          }
-          case 2: {
-            int j = 0;
-            int ipix[] = ipixels;
-            int cInc = colInc[pass];
-            if (depth == 8) {
-                for (j = 0; j < samples; offset += cInc) {
-                    ipix[offset] = (pix[j++]<<16) | (pix[j++]<<8) | pix[j++];
-                }
-            } else {
-                samples = samples<<1;
-                for (j = 0; j < samples; j += 2, offset += cInc) {
-                    ipix[offset] = (pix[j]<<16) | (pix[j+=2]<<8) | pix[j+=2];
-                }
-            }
-            break;
-          }
-          case 3: {
-            insertPalettedPixels(pix, offset, samples);
-            break;
-          }
-          case 6: {
-            int j = 0;
-            int ipix[] = ipixels;
-            int cInc = colInc[pass];
-            if (depth == 8) {
-                for (j = 0; j < samples; offset += cInc) {
-                    ipix[offset] = (pix[j++]<<16) | (pix[j++]<<8) | pix[j++] |
-                                    (pix[j++]<<24);
-                }
-            } else {
-                samples = samples<<1;
-                for (j = 0; j < samples; j += 2, offset += cInc) {
-                    ipix[offset] = (pix[j]<<16) | (pix[j+=2]<<8) | pix[j+=2] |
-                                    (pix[j+=2]<<24);
-                }
-            }
-            break;
-          }
-          default:
+        default:
             break;
         }
     }
 
     /**
-     * This method determines if a given ImageConsumer object
-     * is currently registered with this ImageProducer as one
-     * of its consumers.
-     * @see ImageConsumer
+     * DOCUMENT ME!
+     *
+     * @param pix     DOCUMENT ME!
+     * @param offset  DOCUMENT ME!
+     * @param samples DOCUMENT ME!
+     */
+    private void insertPixels(int[] pix, int offset, int samples) {
+        switch (colorType) {
+
+        case 0:
+        case 4: {
+            insertGreyPixels(pix, offset, samples);
+            break;
+        }
+
+        case 2: {
+            int   j    = 0;
+            int[] ipix = ipixels;
+            int   cInc = colInc[pass];
+
+            if (depth == 8) {
+                for (j = 0; j < samples; offset += cInc) {
+                    ipix[offset] = (pix[j++] << 16) | (pix[j++] << 8) | pix[j++];
+                }
+            } else {
+                samples = samples << 1;
+                for (j = 0; j < samples; j += 2, offset += cInc) {
+                    ipix[offset] = (pix[j] << 16) | (pix[j += 2] << 8) | pix[j += 2];
+                }
+            }
+
+            break;
+        }
+
+        case 3: {
+            insertPalettedPixels(pix, offset, samples);
+            break;
+        }
+
+        case 6: {
+            int   j    = 0;
+            int[] ipix = ipixels;
+            int   cInc = colInc[pass];
+
+            if (depth == 8) {
+                for (j = 0; j < samples; offset += cInc) {
+                    ipix[offset] = (pix[j++] << 16) | (pix[j++] << 8) | pix[j++] | (pix[j++] << 24);
+                }
+            } else {
+                samples = samples << 1;
+                for (j = 0; j < samples; j += 2, offset += cInc) {
+                    ipix[offset] = (pix[j] << 16) | (pix[j += 2] << 8) | pix[j += 2] | (pix[j += 2] << 24);
+                }
+            }
+
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    /**
+     * This method determines if a given ImageConsumer object is currently
+     * registered with this ImageProducer as one of its consumers.
+     *
+     * @param  ic DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @see    ImageConsumer
      */
 
     public synchronized boolean isConsumer(ImageConsumer ic) {
@@ -763,41 +974,46 @@ public class PNGImageProducer implements ImageProducer, Runnable {
 
     /**
      * Read Image data in off of a compression stream
-     **/
+     *
+     * @throws IOException DOCUMENT ME!
+     */
 
     private void readImageData() throws IOException {
         long time = System.currentTimeMillis();
 
-        InputStream dataStream = new SequenceInputStream(
-                                        new IDATEnumeration(this));
+        InputStream dataStream = new SequenceInputStream(new IDATEnumeration(this));
 
-        DataInputStream dis = new DataInputStream(
-                                new BufferedInputStream(
-                                    new InflaterInputStream(dataStream,
-                                                            new Inflater())));
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(new InflaterInputStream(dataStream,
+                                                                                                  new Inflater())));
 
-        int bps, filterOffset;
+        int bps;
+        int filterOffset;
 
         switch (colorType) {
-          case 0:
-          case 3:
+
+        case 0:
+        case 3:
             bps = depth;
             break;
-          case 2:
+
+        case 2:
             bps = 3 * depth;
             break;
-          case 4:
-            bps = depth<<1;
+
+        case 4:
+            bps = depth << 1;
             break;
-          case 6:
-            bps = depth<<2;
+
+        case 6:
+            bps = depth << 2;
             break;
-          default:
+
+        default:
             // should never happen
             throw new IOException("Unknown color type encountered.");
         }
 
-        filterOffset = (bps + 7)>>3;
+        filterOffset = (bps + 7) >> 3;
 
         for (pass = (multipass ? 1 : 0); pass < 8; pass++) {
             int pass = this.pass;
@@ -808,7 +1024,7 @@ public class PNGImageProducer implements ImageProducer, Runnable {
             int val = ((dataWidth - sCol + cInc - 1) / cInc);
 
             int samples = val * filterOffset;
-            int rowSize = (val * bps)>>3;
+            int rowSize = (val * bps) >> 3;
 
             int sRow = startingRow[pass];
 
@@ -817,20 +1033,21 @@ public class PNGImageProducer implements ImageProducer, Runnable {
 
             int sInc = rInc * dataWidth;
 
-            byte inbuf[] = new byte[rowSize];
-            int pix[] = new int[rowSize];
-            int upix[] = null;
-            int temp[] = new int[rowSize];
+            byte[] inbuf    = new byte[rowSize];
+            int[]  pix      = new int[rowSize];
+            int[]  upix     = null;
+            int[]  temp     = new int[rowSize];
 
             // next Y value and number of rows to report to sendPixels
-            int nextY = sRow;
-            int rows = 0;
-            int rowStart = sRow * dataWidth;
+            int    nextY    = sRow;
+            int    rows     = 0;
+            int    rowStart = sRow * dataWidth;
 
             for (int y = sRow; y < dataHeight; y += rInc, rowStart += sInc) {
                 rows += rInc;
 
                 int rowFilter = dis.read();
+
                 dis.readFully(inbuf);
 
                 if (!filterRow(inbuf, pix, upix, rowFilter, filterOffset)) {
@@ -844,46 +1061,57 @@ public class PNGImageProducer implements ImageProducer, Runnable {
                 }
 
                 upix = pix;
-                pix = temp;
+                pix  = temp;
                 temp = upix;
 
                 if (!completePasses) {
                     long newTime = System.currentTimeMillis();
+
                     if ((newTime - time) > updateDelay) {
                         sendPixels(0, nextY, width, rows);
-                        rows = 0;
+                        rows  = 0;
                         nextY = y + rInc;
-                        time = newTime;
+                        time  = newTime;
                     }
                 }
+
                 Thread.yield();
             }
+
             if (!multipass)
                 break;
+
             if (completePasses || (rows > 0)) {
                 sendPixels(0, 0, width, height);
                 time = System.currentTimeMillis();
             }
         }
-        while(dis.read() != -1)
+        while (dis.read() != -1) {
             System.err.println("Leftover data encountered.");
+        }
     }
 
     /**
-    * Remove an ImageConsumer from the list of consumers interested in
-    * data for this image.
-    * @see ImageConsumer
-    */
+     * Remove an ImageConsumer from the list of consumers interested in data for
+     * this image.
+     *
+     * @param ic DOCUMENT ME!
+     *
+     * @see   ImageConsumer
+     */
 
     public synchronized void removeConsumer(ImageConsumer ic) {
         theConsumers.removeElement(ic);
     }
 
     /**
-    * Requests that a given ImageConsumer have the image data delivered
-    * one more time in top-down, left-right order.
-    * @see ImageConsumer
-    */
+     * Requests that a given ImageConsumer have the image data delivered one
+     * more time in top-down, left-right order.
+     *
+     * @param ic DOCUMENT ME!
+     *
+     * @see   ImageConsumer
+     */
 
     public void requestTopDownLeftRightResend(ImageConsumer ic) {
         // Ignored.  The data is either single frame and already in TDLR
@@ -892,7 +1120,7 @@ public class PNGImageProducer implements ImageProducer, Runnable {
 
     /**
      * Primary processing of Image data.
-     **/
+     */
 
     public void run() {
         try {
@@ -906,9 +1134,11 @@ public class PNGImageProducer implements ImageProducer, Runnable {
             e.printStackTrace(System.err);
             error = true;
         }
+
         synchronized (this) {
             for (int c = 0; c < theConsumers.size(); c++) {
                 ImageConsumer ic = (ImageConsumer) theConsumers.elementAt(c);
+
                 if (error) {
                     ic.imageComplete(ImageConsumer.IMAGEERROR);
                 } else {
@@ -918,11 +1148,21 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param x DOCUMENT ME!
+     * @param y DOCUMENT ME!
+     * @param w DOCUMENT ME!
+     * @param h DOCUMENT ME!
+     */
     private synchronized void sendPixels(int x, int y, int w, int h) {
-        int off = dataWidth * y + x;
-        Enumeration e = theConsumers.elements();
+        int         off = dataWidth * y + x;
+        Enumeration e   = theConsumers.elements();
+
         while (e.hasMoreElements()) {
             ImageConsumer ic = (ImageConsumer) e.nextElement();
+
             if ((pixels != null) && (isConsumer(ic))) {
                 if (pixels instanceof byte[]) {
                     ic.setPixels(x, y, w, h, model, bpixels, off, dataWidth);
@@ -933,8 +1173,18 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param ic DOCUMENT ME!
+     * @param x  DOCUMENT ME!
+     * @param y  DOCUMENT ME!
+     * @param w  DOCUMENT ME!
+     * @param h  DOCUMENT ME!
+     */
     private void sendPixels(ImageConsumer ic, int x, int y, int w, int h) {
         int off = dataWidth * y + x;
+
         if ((pixels != null) && (isConsumer(ic))) {
             if (pixels instanceof byte[]) {
                 ic.setPixels(x, y, w, h, model, bpixels, off, dataWidth);
@@ -944,20 +1194,30 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
     private void setColorModel() throws IOException {
         int mask = 0;
+
         switch (depth) {
-          case 1:
+
+        case 1:
             mask = 0x1;
             break;
-          case 2:
+
+        case 2:
             mask = 0x3;
             break;
-          case 4:
+
+        case 4:
             mask = 0xf;
             break;
-          case 8:
-          case 16:
+
+        case 8:
+        case 16:
             mask = 0xff;
             break;
         }
@@ -965,74 +1225,93 @@ public class PNGImageProducer implements ImageProducer, Runnable {
         int count = width * height;
 
         switch (colorType) {
-          case 3:
+
+        case 3:
             if (palette == null)
                 throw new IOException("No palette located");
+
             bpixels = new byte[count];
-            pixels = bpixels;
+            pixels  = bpixels;
             if (transparency) {
-                model = new IndexColorModel(depth, palette.length/4, palette,
+                model = new IndexColorModel(depth, palette.length / 4, palette,
                                             0, true);
             } else {
-                model = new IndexColorModel(depth, palette.length/3, palette,
+                model = new IndexColorModel(depth, palette.length / 3, palette,
                                             0, false);
             }
+
             break;
-          case 0:
+
+        case 0:
             ipixels = new int[count];
-            pixels = ipixels;
+            pixels  = ipixels;
             if (depth < 8) {
                 model = new DirectColorModel(depth, mask, mask, mask);
             } else {
                 model = new DirectColorModel(8, mask, mask, mask);
             }
+
             break;
-          case 2:
+
+        case 2:
             ipixels = new int[count];
-            pixels = ipixels;
-            model = new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
+            pixels  = ipixels;
+            model   = new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
             break;
-          case 4:
+
+        case 4:
             int smask;
+
             if (depth < 8) {
                 smask = mask << depth;
                 model = new DirectColorModel(depth * 2, smask, smask, smask,
-                                                mask);
+                                             mask);
             } else {
                 smask = mask << 8;
                 model = new DirectColorModel(16, smask, smask, smask, mask);
             }
+
             ipixels = new int[count];
-            pixels = ipixels;
+            pixels  = ipixels;
             break;
-          case 6:
+
+        case 6:
             ipixels = new int[count];
-            pixels = ipixels;
-            model = ColorModel.getRGBdefault();
+            pixels  = ipixels;
+            model   = ColorModel.getRGBdefault();
             break;
-          default:
+
+        default:
             throw new IOException("Image has unknown color type");
         }
     }
 
+    /**
+     * DOCUMENT ME!
+     */
     private void start() {
         if (controlThread == null) {
             synchronized (this) {
                 controlThread = new Thread(this);
                 try {
                     controlThread.setPriority(Thread.NORM_PRIORITY - 2);
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
+
                 controlThread.start();
             }
         }
     }
 
     /**
-    * Adds an ImageConsumer to the list of consumers interested in
-    * data for this image, and immediately start delivery of the
-    * image data through the ImageConsumer interface.
-    * @see ImageConsumer
-    */
+     * Adds an ImageConsumer to the list of consumers interested in data for
+     * this image, and immediately start delivery of the image data through the
+     * ImageConsumer interface.
+     *
+     * @param ic DOCUMENT ME!
+     *
+     * @see   ImageConsumer
+     */
 
     public void startProduction(ImageConsumer ic) {
         addConsumer(ic);
@@ -1040,41 +1319,55 @@ public class PNGImageProducer implements ImageProducer, Runnable {
     }
 }
 
-
 /**
  * Support class, used to eat the IDAT headers dividing up the deflated stream
- **/
+ */
 
 class IDATEnumeration implements Enumeration {
-    InputStream underlyingStream;
+    InputStream      underlyingStream;
     PNGImageProducer owner;
-    boolean firstStream = true;
+    boolean          firstStream = true;
 
+    /**
+     * Creates a new IDATEnumeration object.
+     *
+     * @param owner DOCUMENT ME!
+     */
     public IDATEnumeration(PNGImageProducer owner) {
-        this.owner = owner;
+        this.owner            = owner;
         this.underlyingStream = owner.underlyingStream;
     }
 
+    /**
+     * @see java.util.Enumeration#nextElement()
+     */
     public Object nextElement() {
         firstStream = false;
         return new MeteredInputStream(underlyingStream, owner.chunkLength);
     }
 
+    /**
+     * @see java.util.Enumeration#hasMoreElements()
+     */
     public boolean hasMoreElements() {
         DataInputStream dis = new DataInputStream(underlyingStream);
+
         if (!firstStream) {
             try {
-                int crc = dis.readInt();
+                /*int crc =*/ dis.readInt();
+
                 owner.needChunkInfo = false;
-                owner.chunkLength = dis.readInt();
-                owner.chunkType = dis.readInt();
+                owner.chunkLength   = dis.readInt();
+                owner.chunkType     = dis.readInt();
             } catch (IOException ioe) {
                 return false;
             }
         }
+
         if (owner.chunkType == PNGImageProducer.CHUNK_IDAT) {
             return true;
         }
+
         return false;
     }
 }
