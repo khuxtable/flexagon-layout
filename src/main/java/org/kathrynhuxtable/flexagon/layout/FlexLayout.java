@@ -1,3 +1,5 @@
+package org.kathrynhuxtable.flexagon.layout;
+
 // FlexLayout
 
 import java.awt.*;

@@ -1,3 +1,5 @@
+package org.kathrynhuxtable.flexagon.layout;
+
 //
 // Copyright (c) 1997, Jason Marshall.  All Rights Reserved
 //

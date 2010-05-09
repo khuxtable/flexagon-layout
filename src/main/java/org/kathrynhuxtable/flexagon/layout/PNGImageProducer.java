@@ -1,3 +1,5 @@
+package org.kathrynhuxtable.flexagon.layout;
+
 //
 // Copyright (c) 1997, Jason Marshall.  All Rights Reserved
 //
@@ -12,12 +14,21 @@
  * @(#)PNGImageProducer.java	0.88 97/4/14 Jason Marshall
  **/
 
-import java.awt.image.*;
-import java.io.*;
+import java.awt.image.ColorModel;
+import java.awt.image.DirectColorModel;
+import java.awt.image.ImageConsumer;
+import java.awt.image.ImageProducer;
+import java.awt.image.IndexColorModel;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Enumeration;
-import java.util.zip.*;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 // TODO:  Need an ImageFormatException or somesuch..  instead of throwing
 // IOExceptions all over the place.  -JDM
@@ -909,9 +920,9 @@ public class PNGImageProducer implements ImageProducer, Runnable {
 
     private synchronized void sendPixels(int x, int y, int w, int h) {
         int off = dataWidth * y + x;
-        Enumeration enum = theConsumers.elements();
-        while (enum.hasMoreElements()) {
-            ImageConsumer ic = (ImageConsumer) enum.nextElement();
+        Enumeration e = theConsumers.elements();
+        while (e.hasMoreElements()) {
+            ImageConsumer ic = (ImageConsumer) e.nextElement();
             if ((pixels != null) && (isConsumer(ic))) {
                 if (pixels instanceof byte[]) {
                     ic.setPixels(x, y, w, h, model, bpixels, off, dataWidth);
