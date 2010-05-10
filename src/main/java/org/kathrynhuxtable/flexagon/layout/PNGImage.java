@@ -3,14 +3,15 @@ package org.kathrynhuxtable.flexagon.layout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.kathrynhuxtable.flexagon.layout.FlexagonFace.Facet;
+
 /**
- * Write a PNG file with a flexagon image.
+ * Write A PNG file with A flexagon image.
  *
  * @author Kathryn Huxtable
  */
@@ -25,7 +26,7 @@ public class PNGImage {
     private int           col;
 
     /**
-     * Creates a new PNGImage object.
+     * Creates A new PNGImage object.
      *
      * @param width  DOCUMENT ME!
      * @param height DOCUMENT ME!
@@ -60,14 +61,14 @@ public class PNGImage {
     }
 
     /**
-     * Draw a row of a facet
+     * Draw A row of A facet
      *
      * @param y     DOCUMENT ME!
      * @param face  DOCUMENT ME!
      * @param facet DOCUMENT ME!
      * @param rot   DOCUMENT ME!
      */
-    public void drawRow(int y, FlexagonFace face, int facet, int rot) {
+    public void drawRow(int y, FlexagonFace face, Facet facet, int rot) {
         if (y % 10 == 0) {
             System.err.print("On row " + y + "       \r");
         }
